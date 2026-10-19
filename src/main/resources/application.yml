@@ -1,0 +1,55 @@
+spring:
+  application:
+    name: mis-inversiones
+  profiles:
+    default: dev
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+  thymeleaf:
+    cache: false
+
+server:
+  servlet:
+    session:
+      timeout: 30d
+
+app:
+  # Usuario y contraseña para entrar. En prod se pasan por variables de entorno.
+  usuario: ${APP_USUARIO:lauti}
+  password: ${APP_PASSWORD:cambiame}
+  # Firma la cookie "recordarme". Sin valor fijo, cada reinicio pide login de nuevo.
+  clave-recordarme: ${APP_CLAVE_RECORDARME:${random.uuid}}
+  zona-horaria: America/Argentina/Buenos_Aires
+  comision:
+    # Cocos Capital, plan estándar: 0,45% + IVA en acciones y CEDEARs
+    porcentaje: 0.0045
+    iva: 0.21
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    # Base en un archivo local dentro del proyecto (carpeta data/, ignorada por git)
+    url: jdbc:h2:file:./data/mis-inversiones;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
+    username: sa
+    password:
+  h2:
+    console:
+      enabled: true
+      path: /h2
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/misinversiones}
+    username: ${DB_USUARIO:misinversiones}
+    password: ${DB_PASSWORD}
+  thymeleaf:
+    cache: true

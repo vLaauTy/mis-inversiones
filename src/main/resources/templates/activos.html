@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/layout :: head('Activos')}"></head>
+<body>
+<div class="app">
+    <nav th:replace="~{fragmentos/layout :: lateral}"></nav>
+    <main class="contenido">
+        <div th:replace="~{fragmentos/layout :: mensajes}"></div>
+        <h1>Activos</h1>
+        <p class="sutil">Las acciones y CEDEARs que tenés o pensás comprar, con su nivel de riesgo para el reparto del plan.</p>
+
+        <div class="grilla">
+            <section class="bloque">
+                <p class="sutil" th:if="${activos.isEmpty()}">Todavía no agregaste ninguno.</p>
+                <article class="tarjeta" th:each="a : ${activos}">
+                    <div class="fila">
+                        <span class="ticker num" th:classappend="${@fmt.claseNivel(a.nivelRiesgo)}" th:text="${a.ticker}">SPY</span>
+                        <div class="crece">
+                            <strong th:text="${a.nombre}"></strong>
+                            <p class="sutil" th:text="${a.tipo.etiqueta}"></p>
+                        </div>
+                        <span class="nombre-nivel" th:classappend="${@fmt.claseNivel(a.nivelRiesgo)}"
+                              th:text="'Riesgo ' + ${#strings.toLowerCase(a.nivelRiesgo.etiqueta)}"></span>
+                    </div>
+                    <details class="editar">
+                        <summary>Editar</summary>
+                        <form th:action="@{/activos/{id}(id=${a.id})}" method="post" class="formulario">
+                            <label th:for="'nom' + ${a.id}">Nombre</label>
+                            <input th:id="'nom' + ${a.id}" name="nombre" th:value="${a.nombre}" required>
+                            <div class="dos">
+                                <div>
+                                    <label th:for="'tip' + ${a.id}">Tipo</label>
+                                    <select th:id="'tip' + ${a.id}" name="tipo">
+                                        <option th:each="t : ${tiposActivo}" th:value="${t}" th:text="${t.etiqueta}"
+                                                th:selected="${t == a.tipo}"></option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label th:for="'niv' + ${a.id}">Riesgo</label>
+                                    <select th:id="'niv' + ${a.id}" name="nivelRiesgo">
+                                        <option th:each="n : ${niveles}" th:value="${n}" th:text="${n.etiqueta}"
+                                                th:selected="${n == a.nivelRiesgo}"></option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button type="submit" class="boton chico">Guardar</button>
+                        </form>
+                    </details>
+                </article>
+            </section>
+
+            <section class="bloque">
+                <h2>Agregar activo</h2>
+                <form th:action="@{/activos}" th:object="${activoForm}" method="post" class="tarjeta formulario">
+                    <input type="hidden" name="volver" th:if="${volver}" th:value="${volver}">
+                    <p class="aviso error" th:if="${#fields.hasGlobalErrors()}" th:each="e : ${#fields.globalErrors()}" th:text="${e}"></p>
+                    <div class="dos">
+                        <div>
+                            <label for="ticker">Ticker</label>
+                            <input id="ticker" th:field="*{ticker}" placeholder="SPY" autocapitalize="characters" required>
+                            <p class="error-campo" th:errors="*{ticker}"></p>
+                        </div>
+                        <div>
+                            <label for="tipo">Tipo</label>
+                            <select id="tipo" th:field="*{tipo}">
+                                <option th:each="t : ${tiposActivo}" th:value="${t}" th:text="${t.etiqueta}"></option>
+                            </select>
+                        </div>
+                    </div>
+                    <label for="nombreActivo">Nombre</label>
+                    <input id="nombreActivo" th:field="*{nombre}" placeholder="ETF S&amp;P 500" required>
+                    <p class="error-campo" th:errors="*{nombre}"></p>
+                    <label for="nivelRiesgo">Nivel de riesgo</label>
+                    <select id="nivelRiesgo" th:field="*{nivelRiesgo}" required>
+                        <option value="">Elegí…</option>
+                        <option th:each="n : ${niveles}" th:value="${n}" th:text="${n.etiqueta}"></option>
+                    </select>
+                    <p class="error-campo" th:errors="*{nivelRiesgo}"></p>
+                    <button type="submit" class="boton">Agregar</button>
+                </form>
+            </section>
+        </div>
+    </main>
+</div>
+<nav th:replace="~{fragmentos/layout :: inferior}"></nav>
+</body>
+</html>

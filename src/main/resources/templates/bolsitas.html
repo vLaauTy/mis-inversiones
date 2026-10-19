@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/layout :: head('Bolsitas')}"></head>
+<body>
+<div class="app">
+    <nav th:replace="~{fragmentos/layout :: lateral}"></nav>
+    <main class="contenido">
+        <div th:replace="~{fragmentos/layout :: mensajes}"></div>
+        <h1>Bolsitas</h1>
+        <p class="sutil">Plata separada con un fin. El saldo sale de los depósitos, retiros, intereses y plazos fijos activos.</p>
+
+        <div class="grilla">
+            <section class="bloque">
+                <article class="tarjeta" th:each="rb : ${resumenes}">
+                    <div class="fila">
+                        <div>
+                            <strong th:text="${rb.bolsita.nombre}">Black Friday</strong>
+                            <p class="sutil partes"><span th:text="${rb.bolsita.tipo.etiqueta}"></span><span th:if="${rb.bolsita.entidad != null}" th:text="${rb.bolsita.entidad}"></span></p>
+                        </div>
+                        <span class="num fuerte" th:text="${@fmt.moneda(rb.saldo)}">$0</span>
+                    </div>
+                    <p class="sutil partes">
+                        <span th:if="${rb.enPlazosFijos.signum() > 0}" th:text="'En plazos fijos: ' + ${@fmt.moneda(rb.enPlazosFijos)}"></span>
+                        <span th:if="${rb.bolsita.tasa != null}" th:text="'TNA ' + ${@fmt.tasa(rb.bolsita.tasa)}"></span>
+                        <span th:if="${rb.bolsita.meta != null}" th:text="'Meta ' + ${@fmt.moneda(rb.bolsita.meta)} + ' (' + ${rb.avanceMeta} + '%)'"></span>
+                        <span th:if="${rb.bolsita.fechaUso != null}" th:text="'Se usa el ' + ${@fmt.fecha(rb.bolsita.fechaUso)}"></span>
+                    </p>
+                    <p class="sutil" th:if="${rb.estimadoHastaUso.signum() > 0}"
+                       th:text="'Estimado hasta la fecha de uso, con la tasa actual: +' + ${@fmt.moneda(rb.estimadoHastaUso)}"></p>
+                    <div class="accesos">
+                        <a class="boton chico secundario" th:href="@{/operaciones/nueva(tipo='RESERVA',bolsitaId=${rb.bolsita.id})}">Depósito / retiro</a>
+                        <a class="boton chico secundario" th:href="@{/operaciones/nueva(tipo='PLAZO_FIJO',bolsitaId=${rb.bolsita.id})}">Plazo fijo</a>
+                    </div>
+                    <details class="editar">
+                        <summary>Editar</summary>
+                        <form th:action="@{/bolsitas/{id}(id=${rb.bolsita.id})}" method="post" class="formulario">
+                            <label th:for="'n' + ${rb.bolsita.id}">Nombre</label>
+                            <input th:id="'n' + ${rb.bolsita.id}" name="nombre" th:value="${rb.bolsita.nombre}" required>
+                            <label th:for="'t' + ${rb.bolsita.id}">Tipo</label>
+                            <select th:id="'t' + ${rb.bolsita.id}" name="tipo">
+                                <option th:each="t : ${tiposBolsita}" th:value="${t}" th:text="${t.etiqueta}"
+                                        th:selected="${t == rb.bolsita.tipo}"></option>
+                            </select>
+                            <div class="dos">
+                                <div>
+                                    <label th:for="'e' + ${rb.bolsita.id}">Dónde está</label>
+                                    <input th:id="'e' + ${rb.bolsita.id}" name="entidad" th:value="${rb.bolsita.entidad}">
+                                </div>
+                                <div>
+                                    <label th:for="'ta' + ${rb.bolsita.id}">TNA (%)</label>
+                                    <input th:id="'ta' + ${rb.bolsita.id}" name="tasaPct" type="number" step="any" min="0"
+                                           th:value="${@fmt.tasaPlano(rb.bolsita.tasa)}">
+                                </div>
+                            </div>
+                            <div class="dos">
+                                <div>
+                                    <label th:for="'m' + ${rb.bolsita.id}">Meta ($)</label>
+                                    <input th:id="'m' + ${rb.bolsita.id}" name="meta" type="number" step="any" min="0"
+                                           th:value="${@fmt.plano(rb.bolsita.meta)}">
+                                </div>
+                                <div>
+                                    <label th:for="'f' + ${rb.bolsita.id}">Fecha de uso</label>
+                                    <input th:id="'f' + ${rb.bolsita.id}" name="fechaUso" type="date" th:value="${rb.bolsita.fechaUso}">
+                                </div>
+                            </div>
+                            <button type="submit" class="boton chico">Guardar cambios</button>
+                        </form>
+                    </details>
+                </article>
+            </section>
+
+            <section class="bloque">
+                <h2>Nueva bolsita</h2>
+                <form th:action="@{/bolsitas}" th:object="${bolsitaForm}" method="post" class="tarjeta formulario">
+                    <p class="aviso error" th:if="${#fields.hasGlobalErrors()}" th:each="e : ${#fields.globalErrors()}" th:text="${e}"></p>
+                    <label for="nombre">Nombre</label>
+                    <input id="nombre" th:field="*{nombre}" placeholder="Ej: Vacaciones" required>
+                    <p class="error-campo" th:errors="*{nombre}"></p>
+                    <label for="tipo">Tipo</label>
+                    <select id="tipo" th:field="*{tipo}">
+                        <option th:each="t : ${tiposBolsita}" th:value="${t}" th:text="${t.etiqueta}"></option>
+                    </select>
+                    <div class="dos">
+                        <div>
+                            <label for="entidad">Dónde está</label>
+                            <input id="entidad" th:field="*{entidad}" placeholder="Ej: Mercado Pago">
+                        </div>
+                        <div>
+                            <label for="tasaPct">TNA (%)</label>
+                            <input id="tasaPct" type="number" step="any" min="0" th:field="*{tasaPct}" placeholder="19">
+                            <p class="error-campo" th:errors="*{tasaPct}"></p>
+                        </div>
+                    </div>
+                    <div class="dos">
+                        <div>
+                            <label for="meta">Meta ($, opcional)</label>
+                            <input id="meta" type="number" step="any" min="0" th:field="*{meta}">
+                            <p class="error-campo" th:errors="*{meta}"></p>
+                        </div>
+                        <div>
+                            <label for="fechaUso">Fecha de uso (opcional)</label>
+                            <input id="fechaUso" type="date" th:field="*{fechaUso}">
+                        </div>
+                    </div>
+                    <button type="submit" class="boton">Crear</button>
+                </form>
+            </section>
+        </div>
+    </main>
+</div>
+<nav th:replace="~{fragmentos/layout :: inferior}"></nav>
+</body>
+</html>

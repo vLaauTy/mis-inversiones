@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/layout :: head('Cartera')}"></head>
+<body>
+<div class="app">
+    <nav th:replace="~{fragmentos/layout :: lateral}"></nav>
+    <main class="contenido">
+        <div th:replace="~{fragmentos/layout :: mensajes}"></div>
+
+        <div class="titulo-seccion">
+            <div>
+                <h1>Cartera</h1>
+                <p class="sutil">Precios cargados a mano (etapa 1). Actualizalos con lo que ves en Cocos.</p>
+            </div>
+            <a th:href="@{/activos}">Activos</a>
+        </div>
+
+        <section class="tarjeta totales">
+            <div><p class="etiqueta">Invertido</p><p class="num fuerte" th:text="${@fmt.moneda(totales.invertido)}">$0</p></div>
+            <div><p class="etiqueta">Vale hoy</p><p class="num fuerte" th:text="${@fmt.moneda(totales.valor)}">$0</p></div>
+            <div>
+                <p class="etiqueta">Ganancia</p>
+                <p class="num fuerte" th:classappend="${@fmt.claseSigno(totales.ganancia)}"
+                   th:text="${@fmt.pct(totales.gananciaPct)}">0%</p>
+            </div>
+        </section>
+
+        <section th:if="${posiciones.isEmpty()}" class="tarjeta vacio">
+            <p>No tenés posiciones abiertas.</p>
+            <a class="boton" th:href="@{/operaciones/nueva(tipo='ACCION')}">Cargar una compra</a>
+        </section>
+
+        <section class="lista-posiciones" th:unless="${posiciones.isEmpty()}">
+            <article class="tarjeta posicion" th:each="p : ${posiciones}">
+                <div class="fila">
+                    <span class="ticker num" th:classappend="${@fmt.claseNivel(p.activo.nivelRiesgo)}"
+                          th:text="${p.activo.ticker}">SPY</span>
+                    <div class="crece">
+                        <strong th:text="${p.activo.nombre}">ETF S&amp;P 500</strong>
+                        <p class="sutil num"
+                           th:text="${@fmt.cantidad(p.cantidad)} + ' u. · costo prom. ' + ${@fmt.moneda(p.costoPromedio())}">5 u.</p>
+                    </div>
+                    <div class="derecha">
+                        <p class="num fuerte" th:text="${@fmt.moneda(p.valorActual)}">$0</p>
+                        <p class="num" th:classappend="${@fmt.claseSigno(p.ganancia)}"
+                           th:text="${@fmt.monedaConSigno(p.ganancia)} + ' · ' + ${@fmt.pct(p.gananciaPct)}">+0%</p>
+                    </div>
+                </div>
+                <form class="precio" th:action="@{/cartera/{id}/precio(id=${p.activo.id})}" method="post">
+                    <label th:for="'precio-' + ${p.activo.id}">
+                        Precio
+                        <span class="sutil" th:if="${p.precioDeOperacion()}">(de tu última operación)</span>
+                        <span class="sutil" th:unless="${p.precioDeOperacion()}"
+                              th:text="'(' + ${@fmt.fechaHora(p.fechaPrecio)} + ')'"></span>
+                    </label>
+                    <div class="en-linea">
+                        <input th:id="'precio-' + ${p.activo.id}" name="precio" type="number" step="any" min="0"
+                               inputmode="decimal" th:value="${@fmt.plano(p.precioActual)}" required>
+                        <button type="submit" class="boton chico">Actualizar</button>
+                    </div>
+                </form>
+            </article>
+        </section>
+
+        <p class="sutil" th:if="${gananciaRealizada.signum() != 0}"
+           th:text="'Ganancia realizada por ventas: ' + ${@fmt.monedaConSigno(gananciaRealizada)}"></p>
+    </main>
+</div>
+<nav th:replace="~{fragmentos/layout :: inferior}"></nav>
+</body>
+</html>

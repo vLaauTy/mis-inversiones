@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/layout :: head('Inicio')}"></head>
+<body>
+<div class="app">
+    <nav th:replace="~{fragmentos/layout :: lateral}"></nav>
+    <main class="contenido">
+        <div th:replace="~{fragmentos/layout :: mensajes}"></div>
+
+        <section class="encabezado">
+            <p class="etiqueta">Patrimonio total</p>
+            <p class="numero grande num" th:text="${@fmt.moneda(r.patrimonio)}">$0</p>
+            <p class="chips" th:if="${r.tieneAcciones}">
+                <span class="chip num" th:classappend="${@fmt.claseSigno(r.acciones.ganancia)}"
+                      th:text="'Acciones ' + ${@fmt.pct(r.acciones.gananciaPct)}">Acciones +0%</span>
+                <span class="chip gris num" th:text="${@fmt.monedaConSigno(r.acciones.ganancia)} + ' desde que compraste'">+$0</span>
+            </p>
+        </section>
+
+        <section th:if="${!r.vencimientos.isEmpty()}" class="tarjeta alerta">
+            <h2>Vencimientos</h2>
+            <ul class="lista">
+                <li th:each="pf : ${r.vencimientos}">
+                    <span>
+                        <strong th:text="${pf.instrumento.etiqueta} + ' ' + ${pf.entidad}">Plazo fijo</strong>
+                        <span class="sutil" th:text="${@fmt.moneda(pf.monto)} + ' · ' + ${pf.bolsita.nombre}"></span>
+                    </span>
+                    <span class="num" th:with="d=${pf.diasParaVencer(hoy)}"
+                          th:text="${d < 0} ? 'Venció hace ' + ${-d} + ' días' : (${d == 0} ? 'Vence hoy' : 'Vence en ' + ${d} + ' días')">Vence en 3 días</span>
+                </li>
+            </ul>
+            <a th:href="@{/operaciones}">Marcar como cobrado</a>
+        </section>
+
+        <div class="grilla">
+            <section class="bloque">
+                <div class="titulo-seccion">
+                    <h2>Bolsitas</h2>
+                    <a th:href="@{/bolsitas}">Editar</a>
+                </div>
+                <div class="tarjeta lista-tarjetas">
+                    <div class="fila-bolsita" th:each="rb : ${r.bolsitas}">
+                        <div class="fila">
+                            <div>
+                                <strong th:text="${rb.bolsita.nombre}">Black Friday</strong>
+                                <p class="sutil partes">
+                                    <span th:text="${rb.bolsita.entidad != null} ? ${rb.bolsita.entidad} : ${rb.bolsita.tipo.etiqueta}">Mercado Pago</span>
+                                    <span th:if="${rb.bolsita.tasa != null}" th:text="${@fmt.tasa(rb.bolsita.tasa)} + ' TNA'"></span>
+                                    <span th:if="${!rb.plazosActivos.isEmpty()}"
+                                          th:text="${rb.plazosActivos.size() == 1} ? '1 plazo fijo' : ${rb.plazosActivos.size()} + ' plazos fijos'"></span>
+                                </p>
+                            </div>
+                            <span class="num fuerte" th:text="${@fmt.moneda(rb.saldo)}">$0</span>
+                        </div>
+                        <div th:if="${rb.avanceMeta != null}" class="barra" role="img"
+                             th:attr="aria-label='Meta ' + ${rb.avanceMeta} + '%'">
+                            <span th:style="'width:' + ${rb.avanceMeta} + '%'"></span>
+                        </div>
+                        <p class="sutil partes" th:if="${rb.diasParaUso != null or rb.rindePorDia.signum() > 0}">
+                            <span th:if="${rb.diasParaUso != null and rb.diasParaUso >= 0}"
+                                  th:text="'Se usa el ' + ${@fmt.fecha(rb.bolsita.fechaUso)} + ', faltan ' + ${rb.diasParaUso} + ' días'"></span>
+                            <span th:if="${rb.bolsita.meta != null}" th:text="'Meta ' + ${@fmt.moneda(rb.bolsita.meta)}"></span>
+                            <span th:if="${rb.rindePorDia.signum() > 0}"
+                                  th:text="'Rinde ≈ ' + ${@fmt.moneda(rb.rindePorDia)} + ' por día'"></span>
+                        </p>
+                    </div>
+                    <a class="fila-bolsita fila enlace" th:href="@{/cartera}">
+                        <div>
+                            <strong>Acciones / CEDEARs</strong>
+                            <p class="sutil">Cocos</p>
+                        </div>
+                        <span class="num fuerte" th:text="${@fmt.moneda(r.acciones.valor)}">$0</span>
+                    </a>
+                </div>
+            </section>
+
+            <section class="bloque">
+                <h2>Riesgo de tus acciones</h2>
+                <div class="tarjeta" th:if="${r.tieneAcciones}">
+                    <div class="nivel" th:each="n : ${r.reparto.niveles}">
+                        <div class="fila">
+                            <span class="nombre-nivel" th:classappend="${@fmt.claseNivel(n.nivel)}"
+                                  th:text="${n.nivel.etiqueta}">Bajo</span>
+                            <span class="num" th:text="${n.pctRealEntero} + '% · obj. ' + ${n.objetivo} + '%'">0%</span>
+                        </div>
+                        <div class="barra objetivo" role="img"
+                             th:attr="aria-label=${n.nivel.etiqueta} + ': ' + ${n.pctRealEntero} + '% de ' + ${n.objetivo} + '% objetivo'">
+                            <span th:classappend="${@fmt.claseNivel(n.nivel)}"
+                                  th:style="'width:' + ${n.pctRealEntero} + '%'"></span>
+                            <i th:style="'left:' + ${n.objetivo} + '%'"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="tarjeta vacio" th:unless="${r.tieneAcciones}">
+                    <p>Todavía no cargaste acciones ni CEDEARs.</p>
+                    <a class="boton" th:href="@{/operaciones/nueva(tipo='ACCION')}">Cargar primera compra</a>
+                </div>
+
+                <div class="tarjeta oscura" th:if="${r.reparto.sugerencia.isPresent()}"
+                     th:with="s=${r.reparto.sugerencia.get()}">
+                    <strong>Próxima compra sugerida</strong>
+                    <p th:text="'Riesgo ' + ${#strings.toLowerCase(s.nivel.etiqueta)} + ' quedó ' + ${s.puntosAbajo}
+                                + ' puntos abajo del objetivo. Con unos ' + ${@fmt.moneda(s.monto)}
+                                + ' de plata nueva en ese nivel volvés al reparto del plan.'">Sugerencia</p>
+                    <a th:href="@{/operaciones/nueva(tipo='ACCION')}">Cargar esa compra</a>
+                </div>
+
+                <div class="accesos">
+                    <a class="boton secundario" th:href="@{/operaciones/nueva(tipo='RESERVA')}">Depósito en reserva</a>
+                    <a class="boton secundario" th:href="@{/operaciones/nueva(tipo='PLAZO_FIJO')}">Nuevo plazo fijo</a>
+                </div>
+            </section>
+        </div>
+    </main>
+</div>
+<nav th:replace="~{fragmentos/layout :: inferior}"></nav>
+</body>
+</html>

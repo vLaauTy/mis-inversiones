@@ -1,0 +1,11 @@
+{
+  "name": "Mis Inversiones",
+  "short_name": "Inversiones",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F2F4F6",
+  "theme_color": "#12202E",
+  "icons": [
+    { "src": "/icono.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

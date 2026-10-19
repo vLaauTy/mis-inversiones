@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/layout :: head('Historial')}"></head>
+<body>
+<div class="app">
+    <nav th:replace="~{fragmentos/layout :: lateral}"></nav>
+    <main class="contenido">
+        <div th:replace="~{fragmentos/layout :: mensajes}"></div>
+        <h1>Historial</h1>
+
+        <section class="bloque">
+            <h2>Plazos fijos y LECAP</h2>
+            <p class="sutil" th:if="${plazos.isEmpty()}">Todavía no cargaste ninguno.</p>
+            <div class="tabla-scroll" th:unless="${plazos.isEmpty()}">
+                <table>
+                    <thead>
+                    <tr><th>Vence</th><th>Instrumento</th><th>Bolsita</th><th class="der">Monto</th><th class="der">TNA</th><th class="der">Al vencer</th><th>Estado</th></tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="pf : ${plazos}">
+                        <td class="num" th:text="${@fmt.fecha(pf.fechaVencimiento)}"></td>
+                        <td th:text="${pf.instrumento.etiqueta} + ' · ' + ${pf.entidad}"></td>
+                        <td th:text="${pf.bolsita.nombre}"></td>
+                        <td class="num der" th:text="${@fmt.moneda(pf.monto)}"></td>
+                        <td class="num der" th:text="${@fmt.tasa(pf.tasa)}"></td>
+                        <td class="num der" th:text="${pf.totalAlVencer.isPresent()} ? ${@fmt.moneda(pf.totalAlVencer.get())} : 'según inflación'"></td>
+                        <td>
+                            <span th:unless="${pf.activo}" th:text="'Cobrado ' + ${@fmt.moneda(pf.montoCobrado)}">Cobrado</span>
+                            <details th:if="${pf.activo}" class="accion">
+                                <summary th:text="${pf.diasParaVencer(hoy) <= 0} ? 'Marcar cobrado' : 'Activo'">Activo</summary>
+                                <form th:action="@{/plazos-fijos/{id}/cobrar(id=${pf.id})}" method="post" class="en-linea">
+                                    <label class="sr" th:for="'cobro-' + ${pf.id}">Monto cobrado</label>
+                                    <input th:id="'cobro-' + ${pf.id}" name="montoCobrado" type="number" step="any" min="0"
+                                           inputmode="decimal" th:placeholder="${pf.totalAlVencer.isPresent()} ? ${@fmt.plano(pf.totalAlVencer.get())} : 'Monto cobrado'">
+                                    <button type="submit" class="boton chico">Cobrado</button>
+                                </form>
+                            </details>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="bloque">
+            <h2>Compras y ventas</h2>
+            <p class="sutil" th:if="${operaciones.isEmpty()}">Todavía no cargaste operaciones.</p>
+            <div class="tabla-scroll" th:unless="${operaciones.isEmpty()}">
+                <table>
+                    <thead>
+                    <tr><th>Fecha</th><th>Tipo</th><th>Ticker</th><th class="der">Cantidad</th><th class="der">Precio</th><th class="der">Comisión</th><th class="der">Total</th><th></th></tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="o : ${operaciones}">
+                        <td class="num" th:text="${@fmt.fecha(o.fecha)}"></td>
+                        <td th:text="${o.tipo.etiqueta}"></td>
+                        <td class="num fuerte" th:text="${o.activo.ticker}"></td>
+                        <td class="num der" th:text="${@fmt.cantidad(o.cantidad)}"></td>
+                        <td class="num der" th:text="${@fmt.moneda(o.precioUnitario)}"></td>
+                        <td class="num der" th:text="${@fmt.moneda(o.comision)}"></td>
+                        <td class="num der" th:text="${@fmt.moneda(o.total)}"></td>
+                        <td>
+                            <details class="accion">
+                                <summary>Borrar</summary>
+                                <form th:action="@{/operaciones/{id}/borrar(id=${o.id})}" method="post">
+                                    <button type="submit" class="boton chico peligro">Sí, borrar</button>
+                                </form>
+                            </details>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="bloque">
+            <h2>Movimientos de bolsitas</h2>
+            <p class="sutil" th:if="${movimientos.isEmpty()}">Todavía no hay movimientos.</p>
+            <div class="tabla-scroll" th:unless="${movimientos.isEmpty()}">
+                <table>
+                    <thead><tr><th>Fecha</th><th>Bolsita</th><th>Tipo</th><th class="der">Monto</th><th>Nota</th></tr></thead>
+                    <tbody>
+                    <tr th:each="m : ${movimientos}">
+                        <td class="num" th:text="${@fmt.fecha(m.fecha)}"></td>
+                        <td th:text="${m.bolsita.nombre}"></td>
+                        <td th:text="${m.tipo.etiqueta}"></td>
+                        <td class="num der" th:classappend="${@fmt.claseSigno(m.montoConSigno)}" th:text="${@fmt.monedaConSigno(m.montoConSigno)}"></td>
+                        <td class="sutil" th:text="${m.nota}"></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+</div>
+<nav th:replace="~{fragmentos/layout :: inferior}"></nav>
+</body>
+</html>

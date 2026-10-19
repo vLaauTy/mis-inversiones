@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head th:fragment="head(titulo)">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+    <meta name="theme-color" content="#12202E">
+    <title th:text="${titulo} + ' · Mis Inversiones'">Mis Inversiones</title>
+    <link rel="manifest" th:href="@{/manifest.webmanifest}">
+    <link rel="icon" type="image/svg+xml" th:href="@{/icono.svg}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+
+<body>
+
+<!-- Menú lateral (PC) -->
+<nav th:fragment="lateral" class="lateral" aria-label="Navegación principal">
+    <a class="marca" th:href="@{/}">Mis Inversiones</a>
+    <a th:href="@{/}" th:classappend="${seccion == 'inicio'} ? 'activo'">Inicio</a>
+    <a th:href="@{/cartera}" th:classappend="${seccion == 'cartera'} ? 'activo'">Cartera</a>
+    <a th:href="@{/bolsitas}" th:classappend="${seccion == 'bolsitas'} ? 'activo'">Bolsitas</a>
+    <a th:href="@{/operaciones}" th:classappend="${seccion == 'historial'} ? 'activo'">Historial</a>
+    <a th:href="@{/activos}" th:classappend="${seccion == 'activos'} ? 'activo'">Activos</a>
+    <a class="boton-cargar" th:href="@{/operaciones/nueva}">+ Cargar operación</a>
+    <form class="salir" th:action="@{/logout}" method="post">
+        <button type="submit" class="link">Salir</button>
+    </form>
+</nav>
+
+<!-- Mensajes después de guardar -->
+<div th:fragment="mensajes" class="mensajes">
+    <p class="aviso ok" role="status" th:if="${ok}" th:text="${ok}">Guardado.</p>
+    <p class="aviso error" role="alert" th:if="${error}" th:text="${error}">Error.</p>
+</div>
+
+<!-- Barra inferior (celular) -->
+<nav th:fragment="inferior" class="inferior" aria-label="Navegación principal">
+    <a th:href="@{/}" th:classappend="${seccion == 'inicio'} ? 'activo'">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>Inicio
+    </a>
+    <a th:href="@{/cartera}" th:classappend="${seccion == 'cartera'} ? 'activo'">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h18"/><path d="M6 16V9"/><path d="M12 16V5"/><path d="M18 16v-4"/></svg>Cartera
+    </a>
+    <a class="mas" th:href="@{/operaciones/nueva}" aria-label="Cargar operación">
+        <span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg></span>
+    </a>
+    <a th:href="@{/bolsitas}" th:classappend="${seccion == 'bolsitas'} ? 'activo'">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M8 7V5h8v2"/></svg>Bolsitas
+    </a>
+    <a th:href="@{/operaciones}" th:classappend="${seccion == 'historial'} ? 'activo'">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Historial
+    </a>
+</nav>
+
+</body>
+</html>

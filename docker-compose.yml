@@ -1,0 +1,32 @@
+# Levanta la app con PostgreSQL (perfil prod).
+# Uso: copiar .env.example a .env, completar, y correr:  docker compose up -d --build
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: misinversiones
+      POSTGRES_USER: misinversiones
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - datos-db:/var/lib/postgresql/data
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      DB_URL: jdbc:postgresql://db:5432/misinversiones
+      DB_USUARIO: misinversiones
+      DB_PASSWORD: ${DB_PASSWORD}
+      APP_USUARIO: ${APP_USUARIO}
+      APP_PASSWORD: ${APP_PASSWORD}
+      APP_CLAVE_RECORDARME: ${APP_CLAVE_RECORDARME}
+      TZ: America/Argentina/Buenos_Aires
+    ports:
+      - "8080:8080"
+
+volumes:
+  datos-db:

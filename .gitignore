@@ -1,0 +1,15 @@
+target/
+data/
+.env
+*.log
+
+### IDEs ###
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+.factorypath
+.sts4-cache/
+bin/

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragmentos/layout :: head('Cargar operación')}"></head>
+<body>
+<div class="app">
+    <nav th:replace="~{fragmentos/layout :: lateral}"></nav>
+    <main class="contenido angosto">
+        <h1>Cargar operación</h1>
+
+        <nav class="pestanias" aria-label="Tipo de operación">
+            <a th:href="@{/operaciones/nueva(tipo='ACCION')}" th:classappend="${tipo.name() == 'ACCION'} ? 'activo'"
+               th:attr="aria-current=${tipo.name() == 'ACCION'} ? 'page'">Acción<small>CEDEAR / acción</small></a>
+            <a th:href="@{/operaciones/nueva(tipo='PLAZO_FIJO')}" th:classappend="${tipo.name() == 'PLAZO_FIJO'} ? 'activo'"
+               th:attr="aria-current=${tipo.name() == 'PLAZO_FIJO'} ? 'page'">Plazo fijo<small>PF / UVA / LECAP</small></a>
+            <a th:href="@{/operaciones/nueva(tipo='RESERVA')}" th:classappend="${tipo.name() == 'RESERVA'} ? 'activo'"
+               th:attr="aria-current=${tipo.name() == 'RESERVA'} ? 'page'">Reserva<small>Remunerada</small></a>
+        </nav>
+
+        <!-- ACCIÓN / CEDEAR -->
+        <form th:if="${tipo.name() == 'ACCION'}" th:action="@{/operaciones/accion}" th:object="${accionForm}" method="post"
+              class="tarjeta formulario">
+            <p class="aviso error" th:if="${#fields.hasGlobalErrors()}" th:each="e : ${#fields.globalErrors()}" th:text="${e}"></p>
+
+            <fieldset class="segmentado">
+                <legend>Tipo</legend>
+                <label><input type="radio" th:field="*{tipo}" value="COMPRA"><span>Compra</span></label>
+                <label><input type="radio" th:field="*{tipo}" value="VENTA"><span>Venta</span></label>
+            </fieldset>
+
+            <label for="activoId">Activo</label>
+            <select id="activoId" th:field="*{activoId}" required>
+                <option value="">Elegí…</option>
+                <option th:each="a : ${activos}" th:value="${a.id}"
+                        th:text="${a.ticker} + ' — ' + ${a.nombre} + ' (riesgo ' + ${#strings.toLowerCase(a.nivelRiesgo.etiqueta)} + ')'">SPY</option>
+            </select>
+            <p class="error-campo" th:errors="*{activoId}"></p>
+            <p class="sutil"><a th:href="@{/activos(volver='cargar')}">¿No está? Agregá un activo nuevo</a></p>
+
+            <div class="dos">
+                <div>
+                    <label for="cantidad">Cantidad</label>
+                    <input id="cantidad" type="number" step="any" min="0" inputmode="decimal" th:field="*{cantidad}" required>
+                    <p class="error-campo" th:errors="*{cantidad}"></p>
+                </div>
+                <div>
+                    <label for="precioUnitario">Precio por unidad ($)</label>
+                    <input id="precioUnitario" type="number" step="any" min="0" inputmode="decimal" th:field="*{precioUnitario}" required>
+                    <p class="error-campo" th:errors="*{precioUnitario}"></p>
+                </div>
+            </div>
+
+            <label for="comision">Comisión ($, opcional)</label>
+            <input id="comision" type="number" step="any" min="0" inputmode="decimal" th:field="*{comision}"
+                   th:placeholder="'Vacía = ' + ${@fmt.tasa(comisionPct)} + ' + IVA'">
+            <p class="sutil" th:text="'Si la dejás vacía se calcula con la de Cocos: ' + ${@fmt.tasa(comisionPct)} + ' + ' + ${@fmt.tasa(comisionIva)} + ' de IVA. Si tenés el comprobante, poné la real.'"></p>
+            <p class="error-campo" th:errors="*{comision}"></p>
+
+            <div class="dos">
+                <div>
+                    <label for="fecha">Fecha</label>
+                    <input id="fecha" type="date" th:field="*{fecha}" required>
+                </div>
+                <div>
+                    <label for="nota">Nota</label>
+                    <input id="nota" th:field="*{nota}" placeholder="Opcional">
+                </div>
+            </div>
+            <button type="submit" class="boton">Guardar</button>
+        </form>
+
+        <!-- PLAZO FIJO / UVA / LECAP -->
+        <form th:if="${tipo.name() == 'PLAZO_FIJO'}" th:action="@{/operaciones/plazo-fijo}" th:object="${plazoFijoForm}"
+              method="post" class="tarjeta formulario">
+            <p class="aviso error" th:if="${#fields.hasGlobalErrors()}" th:each="e : ${#fields.globalErrors()}" th:text="${e}"></p>
+
+            <label for="instrumento">Instrumento</label>
+            <select id="instrumento" th:field="*{instrumento}">
+                <option th:each="i : ${instrumentos}" th:value="${i}" th:text="${i.etiqueta}">Plazo fijo</option>
+            </select>
+
+            <label for="entidad">Banco o broker</label>
+            <input id="entidad" th:field="*{entidad}" placeholder="Ej: Banco Provincia" required>
+            <p class="error-campo" th:errors="*{entidad}"></p>
+
+            <div class="dos">
+                <div>
+                    <label for="monto">Monto ($)</label>
+                    <input id="monto" type="number" step="any" min="0" inputmode="decimal" th:field="*{monto}" required>
+                    <p class="error-campo" th:errors="*{monto}"></p>
+                </div>
+                <div>
+                    <label for="tasaPct">Tasa (% TNA)</label>
+                    <input id="tasaPct" type="number" step="any" min="0" inputmode="decimal" th:field="*{tasaPct}"
+                           placeholder="22" required>
+                    <p class="sutil">En UVA, la tasa por encima de la inflación.</p>
+                    <p class="error-campo" th:errors="*{tasaPct}"></p>
+                </div>
+            </div>
+
+            <div class="dos">
+                <div>
+                    <label for="fechaInicio">Fecha de inicio</label>
+                    <input id="fechaInicio" type="date" th:field="*{fechaInicio}" required>
+                </div>
+                <div>
+                    <label for="plazoDias">Plazo (días)</label>
+                    <input id="plazoDias" type="number" min="1" th:field="*{plazoDias}" required>
+                    <p class="error-campo" th:errors="*{plazoDias}"></p>
+                </div>
+            </div>
+
+            <label for="bolsitaPf">Va a la bolsita</label>
+            <select id="bolsitaPf" th:field="*{bolsitaId}" required>
+                <option value="">Elegí…</option>
+                <option th:each="b : ${bolsitas}" th:value="${b.id}" th:text="${b.nombre}">Enero en adelante</option>
+            </select>
+            <p class="error-campo" th:errors="*{bolsitaId}"></p>
+
+            <p class="sutil">La app calcula el interés estimado y te muestra el vencimiento en Inicio.</p>
+            <button type="submit" class="boton">Guardar</button>
+        </form>
+
+        <!-- RESERVA / REMUNERADA -->
+        <form th:if="${tipo.name() == 'RESERVA'}" th:action="@{/operaciones/reserva}" th:object="${movimientoForm}"
+              method="post" class="tarjeta formulario">
+            <p class="aviso error" th:if="${#fields.hasGlobalErrors()}" th:each="e : ${#fields.globalErrors()}" th:text="${e}"></p>
+
+            <fieldset class="segmentado tres">
+                <legend>Movimiento</legend>
+                <label><input type="radio" th:field="*{tipo}" value="DEPOSITO"><span>Depósito</span></label>
+                <label><input type="radio" th:field="*{tipo}" value="RETIRO"><span>Retiro</span></label>
+                <label><input type="radio" th:field="*{tipo}" value="INTERES"><span>Interés</span></label>
+            </fieldset>
+
+            <label for="bolsitaMov">Bolsita</label>
+            <select id="bolsitaMov" th:field="*{bolsitaId}" required>
+                <option value="">Elegí…</option>
+                <option th:each="b : ${bolsitas}" th:value="${b.id}"
+                        th:text="${b.nombre} + (${b.entidad != null} ? ' · ' + ${b.entidad} : '')">Black Friday</option>
+            </select>
+            <p class="error-campo" th:errors="*{bolsitaId}"></p>
+
+            <div class="dos">
+                <div>
+                    <label for="montoMov">Monto ($)</label>
+                    <input id="montoMov" type="number" step="any" min="0" inputmode="decimal" th:field="*{monto}" required>
+                    <p class="error-campo" th:errors="*{monto}"></p>
+                </div>
+                <div>
+                    <label for="tasaMov">Tasa actual (% TNA, opcional)</label>
+                    <input id="tasaMov" type="number" step="any" min="0" inputmode="decimal" th:field="*{tasaPct}" placeholder="19">
+                    <p class="error-campo" th:errors="*{tasaPct}"></p>
+                </div>
+            </div>
+
+            <div class="dos">
+                <div>
+                    <label for="fechaMov">Fecha</label>
+                    <input id="fechaMov" type="date" th:field="*{fecha}" required>
+                </div>
+                <div>
+                    <label for="notaMov">Nota</label>
+                    <input id="notaMov" th:field="*{nota}" placeholder="Opcional">
+                </div>
+            </div>
+            <p class="sutil">"Interés" es para cuando querés registrar lo que efectivamente te pagó la cuenta.</p>
+            <button type="submit" class="boton">Guardar</button>
+        </form>
+    </main>
+</div>
+<nav th:replace="~{fragmentos/layout :: inferior}"></nav>
+</body>
+</html>
