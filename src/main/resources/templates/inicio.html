@@ -10,6 +10,9 @@
         <section class="encabezado">
             <p class="etiqueta">Patrimonio total</p>
             <p class="numero grande num" th:text="${@fmt.moneda(r.patrimonio)}">$0</p>
+            <p class="sutil num" th:if="${r.ccl != null}"
+               th:text="'≈ ' + ${@fmt.dolares(r.patrimonioUsd)} + ' · CCL ' + ${@fmt.moneda(r.ccl.venta)}
+                        + ' (' + ${@fmt.fechaHora(r.ccl.fechaHora)} + ')'">≈ US$ 1.000 · CCL $1.625</p>
             <p class="chips" th:if="${r.tieneAcciones}">
                 <span class="chip num" th:classappend="${@fmt.claseSigno(r.acciones.ganancia)}"
                       th:text="'Acciones ' + ${@fmt.pct(r.acciones.gananciaPct)}">Acciones +0%</span>

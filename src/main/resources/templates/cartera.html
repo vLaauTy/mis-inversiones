@@ -10,9 +10,14 @@
         <div class="titulo-seccion">
             <div>
                 <h1>Cartera</h1>
-                <p class="sutil">Precios cargados a mano (etapa 1). Actualizalos con lo que ves en Cocos.</p>
+                <p class="sutil">Precios de BYMA cada 15 minutos mientras opera la bolsa (lunes a viernes, 11 a 17).</p>
             </div>
-            <a th:href="@{/activos}">Activos</a>
+            <div class="acciones-titulo">
+                <form th:action="@{/cartera/precios/actualizar}" method="post">
+                    <button type="submit" class="boton chico secundario">Actualizar ahora</button>
+                </form>
+                <a th:href="@{/activos}">Activos</a>
+            </div>
         </div>
 
         <section class="tarjeta totales">
@@ -46,19 +51,25 @@
                            th:text="${@fmt.monedaConSigno(p.ganancia)} + ' · ' + ${@fmt.pct(p.gananciaPct)}">+0%</p>
                     </div>
                 </div>
-                <form class="precio" th:action="@{/cartera/{id}/precio(id=${p.activo.id})}" method="post">
-                    <label th:for="'precio-' + ${p.activo.id}">
-                        Precio
-                        <span class="sutil" th:if="${p.precioDeOperacion()}">(de tu última operación)</span>
-                        <span class="sutil" th:unless="${p.precioDeOperacion()}"
-                              th:text="'(' + ${@fmt.fechaHora(p.fechaPrecio)} + ')'"></span>
-                    </label>
-                    <div class="en-linea">
-                        <input th:id="'precio-' + ${p.activo.id}" name="precio" type="number" step="any" min="0"
-                               inputmode="decimal" th:value="${@fmt.plano(p.precioActual)}" required>
-                        <button type="submit" class="boton chico">Actualizar</button>
-                    </div>
-                </form>
+                <p class="linea-precio partes">
+                    <span class="num" th:text="${@fmt.moneda(p.precioActual)}">$45.000</span>
+                    <span th:if="${p.precioDeOperacion()}">precio de tu última operación</span>
+                    <span th:unless="${p.precioDeOperacion()}"
+                          th:text="${p.fuentePrecio.etiqueta} + ' · ' + ${@fmt.fechaHora(p.fechaPrecio)}">BYMA · 19/10 15:30</span>
+                    <span class="num" th:if="${p.tieneVariacionDe(hoy)}" th:classappend="${@fmt.claseSigno(p.variacionDiaria)}"
+                          th:text="${@fmt.pct(p.variacionDiaria)} + ' hoy'">+1,2% hoy</span>
+                </p>
+                <details class="editar">
+                    <summary>Cargar precio a mano</summary>
+                    <form class="precio" th:action="@{/cartera/{id}/precio(id=${p.activo.id})}" method="post">
+                        <label th:for="'precio-' + ${p.activo.id}">Precio en pesos</label>
+                        <div class="en-linea">
+                            <input th:id="'precio-' + ${p.activo.id}" name="precio" type="number" step="any" min="0"
+                                   inputmode="decimal" th:value="${@fmt.plano(p.precioActual)}" required>
+                            <button type="submit" class="boton chico">Guardar</button>
+                        </div>
+                    </form>
+                </details>
             </article>
         </section>
 

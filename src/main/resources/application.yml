@@ -9,6 +9,11 @@ spring:
       ddl-auto: validate
   thymeleaf:
     cache: false
+  http:
+    clients:
+      # Las fuentes de precios a veces tardan; mejor cortar y pasar a la siguiente.
+      connect-timeout: 5s
+      read-timeout: 15s
 
 server:
   servlet:
@@ -26,6 +31,15 @@ app:
     # Cocos Capital, plan estándar: 0,45% + IVA en acciones y CEDEARs
     porcentaje: 0.0045
     iva: 0.21
+  precios:
+    automaticos: true
+    # Cada 15 minutos de lunes a viernes de 11 a 17:45 (la rueda cierra a las 17; la última pasada toma el cierre).
+    cron: "0 */15 11-17 * * MON-FRI"
+    # Orden de consulta. BYMA es la fuente oficial (con ~20 min de demora); data912 cubre si BYMA falla.
+    fuentes: BYMA, DATA912
+    byma-url: https://open.bymadata.com.ar/vanoms-be-core/rest/api/bymadata/free
+    data912-url: https://data912.com
+    dolar-url: https://dolarapi.com
 
 ---
 spring:

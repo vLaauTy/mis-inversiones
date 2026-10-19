@@ -1,7 +1,9 @@
 package com.vlaauty.misinversiones.web;
 
+import com.vlaauty.misinversiones.dominio.DolarCcl;
 import com.vlaauty.misinversiones.repositorio.ActivoRepository;
 import com.vlaauty.misinversiones.repositorio.BolsitaRepository;
+import com.vlaauty.misinversiones.repositorio.DolarCclRepository;
 import com.vlaauty.misinversiones.repositorio.OperacionRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +13,9 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 import static org.hamcrest.Matchers.containsString;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -39,6 +44,9 @@ class FlujoCompletoTest {
 
     @Autowired
     OperacionRepository operaciones;
+
+    @Autowired
+    DolarCclRepository dolares;
 
     private Long crearActivo(String ticker) throws Exception {
         mvc.perform(post("/activos").with(csrf())
@@ -154,5 +162,30 @@ class FlujoCompletoTest {
                         .param("fecha", "2026-10-21").param("monto", "600000"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("No podés retirar más")));
+    }
+
+    @Test
+    @WithMockUser
+    void siNingunaFuenteRespondeAvisaQueTickersQuedaronSinPrecio() throws Exception {
+        crearActivo("SPY");
+
+        mvc.perform(post("/cartera/precios/actualizar").with(csrf()))
+                .andExpect(redirectedUrl("/cartera"))
+                .andExpect(flash().attribute("error", containsString("No encontré precio para SPY")));
+    }
+
+    @Test
+    @WithMockUser
+    void inicioMuestraElPatrimonioEnDolaresConElCcl() throws Exception {
+        Long bf = bolsitas.findAll().stream().filter(b -> b.getNombre().equals("Black Friday")).findFirst().orElseThrow().getId();
+        mvc.perform(post("/operaciones/reserva").with(csrf())
+                .param("bolsitaId", bf.toString()).param("tipo", "DEPOSITO")
+                .param("fecha", "2026-10-20").param("monto", "500000"));
+        dolares.save(new DolarCcl(LocalDateTime.of(2026, 10, 20, 17, 0), new BigDecimal("1595"), new BigDecimal("1600")));
+
+        // 500.000 / 1.600 = 312,5 → US$ 313
+        mvc.perform(get("/"))
+                .andExpect(content().string(containsString("US$ 313")))
+                .andExpect(content().string(containsString("CCL $1.600")));
     }
 }

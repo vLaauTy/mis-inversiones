@@ -76,6 +76,7 @@ public class CarteraService {
                 estado.costo(),
                 ultimo.map(Precio::getPrecioArs).orElse(estado.ultimoPrecioOperado()),
                 ultimo.map(Precio::getFuente).orElse(null),
-                ultimo.map(Precio::getFechaHora).orElse(null));
+                ultimo.map(Precio::getFechaHora).orElse(null),
+                ultimo.map(Precio::getVariacionDiaria).orElse(null));
     }
 }

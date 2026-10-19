@@ -100,8 +100,11 @@ a:hover { color: #084F45; }
 
 /* ---------- Bloques ---------- */
 .bloque { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
-.titulo-seccion { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.titulo-seccion { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 12px; }
 .titulo-seccion h2 { margin: 0; }
+.acciones-titulo { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.acciones-titulo form { margin: 0; }
+.linea-precio { margin: 10px 0 0; font-size: 13px; color: var(--sutil); }
 
 .tarjeta { background: var(--tarjeta); border-radius: var(--radio); padding: 16px; display: flex; flex-direction: column; gap: 10px; }
 .tarjeta.oscura { background: var(--tinta); color: #fff; }

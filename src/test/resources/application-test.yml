@@ -6,3 +6,11 @@ spring:
   h2:
     console:
       enabled: false
+app:
+  precios:
+    # Los tests nunca salen a internet: las fuentes se prueban con un servidor simulado.
+    automaticos: false
+    # Direcciones que no responden: si algún test dispara una actualización, las fuentes fallan rápido.
+    byma-url: http://localhost:9/byma
+    data912-url: http://localhost:9/data912
+    dolar-url: http://localhost:9/dolar

@@ -17,7 +17,7 @@ class CalculadoraRepartoTest {
 
     private Posicion pos(String ticker, NivelRiesgo nivel, String valor) {
         Activo a = new Activo(ticker, ticker, TipoActivo.CEDEAR, nivel);
-        return new Posicion(a, BigDecimal.ONE, new BigDecimal(valor), new BigDecimal(valor), null, null);
+        return new Posicion(a, BigDecimal.ONE, new BigDecimal(valor), new BigDecimal(valor), null, null, null);
     }
 
     @Test

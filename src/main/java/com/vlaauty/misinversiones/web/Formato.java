@@ -40,6 +40,11 @@ public class Formato {
         return signo + "$" + cuerpo;
     }
 
+    /** Dólares sin centavos: US$ 1.234 */
+    public String dolares(BigDecimal v) {
+        return v == null ? "—" : "US$ " + patron("#,##0").format(v.setScale(0, RoundingMode.HALF_UP));
+    }
+
     /** Con signo: +$2.140 / -$500. */
     public String monedaConSigno(BigDecimal v) {
         if (v == null) {

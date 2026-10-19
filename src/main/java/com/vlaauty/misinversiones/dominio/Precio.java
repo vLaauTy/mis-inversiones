@@ -14,7 +14,7 @@ import jakarta.persistence.ManyToOne;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-/** Precio de un activo en un momento. En la etapa 1 se carga a mano; después llega de BYMA. */
+/** Precio de un activo en un momento: cargado a mano o traído de BYMA / data912. */
 @Entity
 public class Precio {
 
@@ -36,14 +36,31 @@ public class Precio {
     @Column(nullable = false, length = 10)
     private FuentePrecio fuente;
 
+    /** Variación del día según la fuente, como fracción. Vacía en los precios manuales. */
+    @Column(name = "variacion_diaria", precision = 9, scale = 6)
+    private BigDecimal variacionDiaria;
+
     protected Precio() {
     }
 
     public Precio(Activo activo, LocalDateTime fechaHora, BigDecimal precioArs, FuentePrecio fuente) {
+        this(activo, fechaHora, precioArs, fuente, null);
+    }
+
+    public Precio(Activo activo, LocalDateTime fechaHora, BigDecimal precioArs, FuentePrecio fuente,
+                  BigDecimal variacionDiaria) {
         this.activo = activo;
         this.fechaHora = fechaHora;
         this.precioArs = precioArs;
         this.fuente = fuente;
+        this.variacionDiaria = variacionDiaria;
+    }
+
+    /** true si es el mismo precio de la misma fuente y el mismo día (evita repetir el cierre). */
+    public boolean repite(BigDecimal otroPrecio, FuentePrecio otraFuente, LocalDateTime otraFechaHora) {
+        return fuente == otraFuente
+                && precioArs.compareTo(otroPrecio) == 0
+                && fechaHora.toLocalDate().equals(otraFechaHora.toLocalDate());
     }
 
     public Long getId() {
@@ -64,5 +81,9 @@ public class Precio {
 
     public FuentePrecio getFuente() {
         return fuente;
+    }
+
+    public BigDecimal getVariacionDiaria() {
+        return variacionDiaria;
     }
 }
